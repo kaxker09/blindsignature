@@ -1,4 +1,5 @@
 from random import randint
+from math import gcd
 
 def genNumber():
     b = 1024
@@ -43,7 +44,7 @@ def rabinMiller(d,p):
     x = power(a,d,p)
 
     if x == 1 or x == p - 1:
-        return True;
+        return True
 
     while d != p - 1:
         x = (x * x) % p
@@ -67,6 +68,22 @@ def power(x,y,p):
 
     return res
 
+#generating keys for rsa
+def genKeys(p,q):
+    n = p*q
+    f = (p-1)*(q-1)
+
+    while True:
+        e = randint(1,f)
+        if gcd(e,f) == 1:
+            break
+
+    d = d = pow(e, -1, f)
+
+    print(n)
+    print(e)
+    print("d:", d)
+
 n = genNumber()
 p = calcNumber(n)
 
@@ -74,3 +91,11 @@ while isPrime(p,10) == False:
     n = genNumber()
     p = calcNumber(n)
 
+n = genNumber()
+q = calcNumber(n)
+
+while isPrime(q,10) == False:
+    n = genNumber()
+    q = calcNumber(n)
+
+genKeys(p,q)
