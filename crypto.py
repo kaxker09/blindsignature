@@ -1,5 +1,6 @@
 from random import randint
 from math import gcd
+import hashlib
 
 def genNumber():
     b = 1024
@@ -83,7 +84,24 @@ def genKeys(p,q):
     print(n)
     print(e)
     print("d:", d)
+    return e,d
 
+def signature(d):
+    with open('text.txt', 'r') as file:
+        data = file.read().replace('\n', '')
+
+    h = hashlib.new('sha256')
+
+    h.update(data)
+
+    s = h.hexdigest()
+    print(s)
+    return s
+
+#def verifySignature(e,p,s):
+
+
+########
 n = genNumber()
 p = calcNumber(n)
 
@@ -98,4 +116,6 @@ while isPrime(q,10) == False:
     n = genNumber()
     q = calcNumber(n)
 
-genKeys(p,q)
+
+e,d = genKeys(p,q)
+signature(d)
