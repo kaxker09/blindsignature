@@ -93,22 +93,29 @@ def signature(d,n):
     s = pow(h,d,n)
     return s
 
-def blindvar(n):
+def blindvar(p,e):
+    #unique key to voting
+    nv,ev,dv = genkeys()
     while True:
-        r = randint(1, n)
-        if gcd(r,n) == 1:
+        r = randint(1, p)
+        if gcd(r,p) == 1:
             break
-    return r
 
-def blindsignature(e,n,d,r):
-    with open('text.txt', 'r') as file:
-        data = file.read().replace('\n', '')
+    with open("keypriv.txt", "w", encoding="utf-8") as f:
+        f.write(f"{dv}\n{r}")
 
-    hash_bytes = hashlib.sha256(data.encode('utf-8')).digest()
-    h = int.from_bytes(hash_bytes, 'big') % n
+    with open("keypriv.txt", "rb") as f:
+        data_bytes = f.read()
 
-    temp = pow(r, e, n)
-    t = (temp*h) % n
+    hash_bytes = hashlib.sha256(data_bytes).digest()
+    h = int.from_bytes(hash_bytes, "big") % p
+
+    temp = pow(r, e, p)
+    t = (temp * h) % p
+
+    return r,t,nv,ev,dv
+
+def blindsignature(t,d,n):
     bs = pow(t,d,n)
     return bs
 
