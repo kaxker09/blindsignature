@@ -2,11 +2,10 @@ from random import randint
 from math import gcd
 import hashlib
 
-def genNumber():
+def gennumber():
     b = 1024
     n = [0] * b
 
-##zapisywanie liczby do tablicy
     for i in range(len(n)):
         n[i] = randint(0,1)
 
@@ -15,8 +14,7 @@ def genNumber():
     print(n)
     return n
 
-##odczytywanie licbzy z tablicy i zapisywanie jej do zmiennej
-def calcNumber(n):
+def calcnumber(n):
     p =  0
     for i in range(len(n)):
         temp = n[i]
@@ -27,22 +25,22 @@ def calcNumber(n):
     print(p)
     return p
 
-def isPrime(p,k):
+def isprime(p,k):
     d = p-1
 
     while d % 2 == 0:
         d //=2
 
     for i in range(k):
-        if (rabinMiller(d,p) == False):
+        if (rabinmiller(d,p) == False):
             return False
 
     print(1)
     return True
 
-def rabinMiller(d,p):
+def rabinmiller(d,p):
     a = randint(2,p-1)
-    x = power(a,d,p)
+    x = pow(a,d,p)
 
     if x == 1 or x == p - 1:
         return True
@@ -58,19 +56,22 @@ def rabinMiller(d,p):
 
     return False
 
-def power(x,y,p):
-    res = 1
-    x = x % p
-    while y>0:
-        if y & 1:
-            res = (res * x) % p
-        y = y >> 1
-        x = (x * x) % p
+def genkeys():
 
-    return res
+    while True:
+        x = gennumber()
+        temp = calcnumber(x)
+        if isprime(temp, k=10) == True:
+            p = temp
+            break
 
-#generating keys for rsa
-def genKeys(p,q):
+    while True:
+        x = gennumber()
+        temp = calcnumber(x)
+        if isprime(temp, k=10) == True:
+            q = temp
+            break
+
     n = p*q
     f = (p-1)*(q-1)
 
@@ -79,43 +80,55 @@ def genKeys(p,q):
         if gcd(e,f) == 1:
             break
 
-    d = d = pow(e, -1, f)
+    d = pow(e, -1, f)
 
-    print(n)
-    print(e)
-    print("d:", d)
-    return e,d
+    return n,e,d
 
-def signature(d):
+def signature(d,n):
     with open('text.txt', 'r') as file:
         data = file.read().replace('\n', '')
 
-    h = hashlib.new('sha256')
-
-    h.update(data)
-
-    s = h.hexdigest()
-    print(s)
+    hash_bytes = hashlib.sha256(data.encode('utf-8')).digest()
+    h = int.from_bytes(hash_bytes, 'big') % n
+    s = pow(h,d,n)
     return s
 
-#def verifySignature(e,p,s):
+def blindvar(n):
+    while True:
+        r = randint(1, n)
+        if gcd(r,n) == 1:
+            break
+    return r
 
+def blindsignature(e,n,d,r):
+    with open('text.txt', 'r') as file:
+        data = file.read().replace('\n', '')
 
-########
-n = genNumber()
-p = calcNumber(n)
+    hash_bytes = hashlib.sha256(data.encode('utf-8')).digest()
+    h = int.from_bytes(hash_bytes, 'big') % n
 
-while isPrime(p,10) == False:
-    n = genNumber()
-    p = calcNumber(n)
+    temp = pow(r, e, n)
+    t = (temp*h) % n
+    bs = pow(t,d,n)
+    return bs
 
-n = genNumber()
-q = calcNumber(n)
+def verifysignature(e,n,s,h):
+    temp = pow(s,e,n)
+    if temp == h:
+        return True
 
-while isPrime(q,10) == False:
-    n = genNumber()
-    q = calcNumber(n)
+    return False
 
+def removeblind(r,n,bs):
+    rinv = pow(r,-1,n)
+    s = (bs * rinv) % n
+    return s
 
-e,d = genKeys(p,q)
-signature(d)
+def verifyblindsignature(d,n,bs,s,r):
+    rinv = pow(r,-1,n)
+    temp = pow(bs,rinv,n)
+    if temp == s:
+        return True
+
+    return False
+
